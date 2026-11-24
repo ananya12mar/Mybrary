@@ -8,18 +8,10 @@ const authorSchema = new mongoose.Schema({
     }
 })
 
-authorSchema.pre('deleteOne', async function(next){
-    try {
-        const query = this.getFilter();
-        const hasBook = await Book.exists({ author: query.id });
-  
-        if (hasBook) {
-            next(new Error("This author still has books."));
-        } else {
-            next();
-        }
-    } catch (err) {
-        next(err);
+authorSchema.pre('deleteOne', { document: true, query: false }, async function(){
+    const hasBook = await Book.exists({ author: this._id })
+    if (hasBook) {
+        throw new Error('This author still has books.')
     }
 })
 
